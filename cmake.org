@@ -1,0 +1,159 @@
+* CMakeの使い方
+  cmakeの使い方　参考 : http://opencv.jp/cmake/cmake_tutorial.html
+
+* (Step1) 最初に
+  #+BEGIN_SRC cmake
+    cmake_minimum_required (VERSION 2.6)
+    project (Tutorial)
+
+    add_executable(Tutorial tutorial.cxx)
+  #+END_SRC
+  基本構成
+  cmake_minimum_required : cmakeのバージョン選択
+  project : プロジェクトの名前
+
+  add_executable : add_executable(<name> [source1].cpp [source].cpp)
+                   <name> : targetファイル -> 生成される実行ファイル
+
+* バージョン番号とヘッダーファイル
+  #+BEGIN_SRC cmake
+  # バージョン番号
+  set (Tutorial_VERSION_MAJOR 1)
+  set (Tutorial_VERSION_MINOR 0)
+
+  # CMameの設定をソースコードに渡すためのヘッダーファイル構成
+  configure_file(
+    "${PROJECT_COURCE_DIR}/TutorialConfig.h.in"
+    "${PROJECT_BINARY_DIR}/TutorialConfig.h"
+  )
+
+  # TutorialConfig.hを検出できるように,
+  # インクルードファイルの探索パスにバイナリツリーを追加
+  include_directories("${PROJECT_BINARY_DIR}")
+
+  # 実行ファイルを追加
+  add_executable(Tutorial tutorial.cxx)
+
+  #+end_src
+  set (Tutorial_VERSION_MAJOR 1)　とすることで, #Tutorial_VERSION_MAJOR 1　と.hへ入力することを暗示している。
+  CMakeはヘッダーファイルの中の定義を操作できる。
+  この場合、${PROJECT_SOURCE_DIR}/に自分で以下の内容のTutorialConfig.h.inを作成する必要がある.
+  #difine Tutorial_VERSION_MAJOR @Tutorial_VERSION_MAJOR@
+  #difine Tutorial_VERSION_MINOR @Tutorial_VERSION_MINOR@
+
+  この状態でコンパイルすることで ${PROJECT_BINARY_DIR}/TutorialConfig.hが作成され, 中には
+  #define Tutorial_VERSION_MAJOR 1
+  #define Tutorial_VERSION_MINOR 0
+  と書かれている.
+
+  ちなみに, ソースツリーやビルドツリーに関する変数の一覧を下に示す.
+  CMAKE_SOURCE_DIR : ソースツリーのトップディレクトリ(cmake時に指定したディレクトリ)
+  CMAKE_BINARY_DIR : 上に対応するビルドディレクトリ
+  CMAKE_CURRENT_SOURCE_DIR : 現在処理中のCMakeLists.txtの配置ディレクトリ
+  CMAKE_CURRENT_BINARY_DIR : 上に対応するビルドディレクトリ
+  PROJECT_SOURCE_DIR : 現在のプロジェクトのトップディレクトリ
+  PROJECT_BINARY_DIR : 上に対応するビルドディレクトリ
+  <name>_SOURCE_DIR : プロジェクト<name>のトップディレクトリ
+  <name>_BINARY_DIR : 上に対応するビルドディレクトリ
+  CMAKE_CURRENT_LIST_DIR : 現在処理中のファイルの配置ディレクトリ
+
+  * CMAKE_INCLUDE_CURRENT_DIR
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)とすると
+    ${CMAKE_CURRENT_SOURCE_DIR}と${CMAKE_CURRENT_BINARY_DIR}が
+    自動的にinclude_directories()される. デフォルトではOFF
+    
+  * CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}と${CMAKE_CURRENT_BINARY_DIR}が
+    自動的にINTERFACE_INCLUDE_DIRECTORIES に追加される.
+
+* ライブラリの追加
+  ライブラリの追加を行う。${PROJECT_SOURCE_DIR}の下にライブラリファイル(MathFunctions)を作成し中にCMakeLists.txtとソースファイルを作成する.
+  そのCMakeListsには以下の１行を書く.
+  add_library(MathFunctions mysqrt.cxx)
+
+  トップディレクトリのCMakeListsには以下を追加.
+  #+BEGIN_SRC cmake
+  include_directories("${PROJECT_SOURCE_DIR}/MathFunctions")
+  add_subdirectory (MathFunctions)
+
+  add_executable(Tutorial tutorial.cxx)
+  target_link_libraries(Tutorial MathFunctions)
+  #+END_SRC
+
+  * ライブラリの追加をオプション形式にする.
+    CMakeListsの初めの方に以下を追加
+    #+BEGIN_SRC cmake
+    option(USE_MYMATH "Use tutorial provided math implementation" ON)
+    #+END_SRC
+    ここをOFFにすればライブラリを使用しなくする.
+
+    この場合, トップレベルのCMakeListsは以下のようになる
+    #+BEGIN_SRC cmake
+    if (USE_MYMATH)
+      include_directories ("${PROJECT_SOURCE_DIR}/MathFunctions")
+      add_subdirectory (MathFunctions)
+      set (EXTRA_LIBS ${EXTRA_LIBS} MathFunctions)
+    endif (USE_MYMATH)
+
+    add_executable (Tutorial tutorial.cxx)
+    target_link_libraries (Tutorial ${EXTRA_LIBS})
+    #+END_SRC
+
+    if 文の使い方はわかる
+    #+BEGIN_SRC cmake
+    set (EXTRA_LIBS ${EXTRA_LIBS} MathFunctions)？
+    #+END_SRC
+    --> EXTRA_LIBS = ${EXTRA_LIBS}, MathFunctions 見たいな感じ？
+    最初は${EXTRA_LIBS} = " " なので,
+    --> EXTRA_LIBS = MathFunctionsと同義。
+
+    *CMakeListsには変数の定義が必要ない...?*
+
+    この場合、トップレベルのソースコードは以下のようになる.
+    #+BEGIN_SRC cmake
+    // 1つの数値の平方根を計算する単純なプログラム
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <math.h>
+    #include "TutorialConfig.h"
+    #ifdef USE_MYMATH
+    #include "MathFunctions.h"
+    #endif
+
+    int main (int argc, char *argv[])
+    {
+      if (argc < 2)
+        {
+        fprintf(stdout,"%s Version %d.%d\n", argv[0],
+                Tutorial_VERSION_MAJOR,
+                Tutorial_VERSION_MINOR);
+        fprintf(stdout,"Usage: %s number\n",argv[0]);
+        return 1;
+        }
+
+      double inputValue = atof(argv[1]);
+
+    #ifdef USE_MYMATH
+      double outputValue = mysqrt(inputValue);
+    #else
+      double outputValue = sqrt(inputValue);
+    #endif
+
+      fprintf(stdout,"The square root of %g is %g\n",
+              inputValue, outputValue);
+      return 0;
+    }
+    #+END_SRC
+    また, この場合のTutorial.h.in設定ファイルは以下のようになる
+    #+BEGIN_SRC cmake
+      #cmakedefine USE_MYMATH
+    #+END_SRC
+
+* インストール
+  インストールとは他のライブラリを読み込む動作？
+  #+BEGIN_SRC cmake
+  install(TARGETS MathFunctions DESTINATION bin)
+  install(FILES MathFunctions.h DESTINATION include)
+  #+END_SRC
+
+  MathFunctionsとMathFunctions.hをbinとincludeにインストールする.

@@ -1,0 +1,11 @@
+* catkin config (pyenv環境)
+  catkin config -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF -DPYTHON_EXECUTABLE=/home/itolab-chotaro/.pyenv/versions/3.6.5/bin/python3.6m -DPYTHON_INCLUDE_DIR=/home/itolab-chotaro/.pyenv/versions/3.6.5/include/python3.6m -DPYTHON_LIBRARY=/home/itolab-chotaro/.pyenv/versions/3.6.5/lib/libpython3.6m.so
+
+  MEMO:
+
+
+  sudo apt-get install python-rosdep python-rosinstall-generator python-rosinstall build-essential
+
+
+  
+  colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF -DPYTHON_EXECUTABLE=/home/chohome/.pyenv/versions/3.6.8/bin/python3.6m -DPYTHON_INCLUDE_DIR=/home/chohome/.pyenv/versions/3.6.8/include/python3.6m -DPYTHON_LIBRARY=/home/chohome/.pyenv/versions/3.6.8/lib/libpython3.6m.so

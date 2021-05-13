@@ -1,0 +1,339 @@
+* pyenv の環境構築について
+  env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.6.5
+  で環境構築.
+  参考: https://qiita.com/hiro-han/items/ea3ce311cf3e5814e442
+
+
+
+* def async(coro_or_future, loop=None):
+  * Error
+    >>> imoport trollius
+    File "<stdin>", line 1
+      imoport trollius
+                    ^
+    SyntaxError: invalid syntax
+    >>> import trollius
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/home/itolab-chotaro/.pyenv/versions/3.7.5/envs/roswork/lib/python3.7/site-packages/trollius/__init__.py", line 21, in <module>
+        from .base_events import *
+      File "/home/itolab-chotaro/.pyenv/versions/3.7.5/envs/roswork/lib/python3.7/site-packages/trollius/base_events.py", line 42, in <module>
+        from . import tasks
+      File "/home/itolab-chotaro/.pyenv/versions/3.7.5/envs/roswork/lib/python3.7/site-packages/trollius/tasks.py", line 565
+        def async(coro_or_future, loop=None):
+                ^
+    SyntaxError: invalid syntax
+    
+  * Solution
+    asyncとは, すでにpython3.7によって定義されているため使用できないと言っている?
+    別の名前にする必要があるかもしれない.
+
+    これができないと, catkinを使用できない.
+    どうやらインストールしたcatkin_toolsに問題があったみたい?
+    gitから直接catkin_toolsをインストールする.
+    $ sudo pip3 install git+https://github.com/catkin/catkin_tools.git
+
+* $ ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/home/itolab-chotaro/.pyenv/versions/3.7.5/bin/python3.7m -DPYTHON_INCLUDE_DIR=/home/itolab-chotaro/.pyenv/versions/3.7.5/include/python3.7m
+  * Error
+    (省略)
+    -- Using Python nosetests: /usr/bin/nosetests3
+    ImportError: "from catkin_pkg.package import parse_package" failed: No module named 'catkin_pkg'
+    Make sure that you have installed "catkin_pkg", it is up to date and on the PYTHONPATH.
+    CMake Error at cmake/safe_execute_process.cmake:11 (message):
+      execute_process(/home/itolab-chotaro/.pyenv/versions/3.7.5/bin/python3.7m
+      "/home/itolab-chotaro/ros/melodic/src/catkin/cmake/parse_package_xml.py"
+      "/home/itolab-chotaro/ros/melodic/src/catkin/cmake/../package.xml"
+      "/home/itolab-chotaro/ros/melodic/build_isolated/catkin/catkin/catkin_generated/version/package.cmake")
+      returned error code 1
+    Call Stack (most recent call first):
+      cmake/catkin_package_xml.cmake:74 (safe_execute_process)
+      cmake/all.cmake:168 (_catkin_package_xml)
+      CMakeLists.txt:8 (include)
+
+
+    -- Configuring incomplete, errors occurred!
+    See also "/home/itolab-chotaro/ros/melodic/build_isolated/catkin/CMakeFiles/CMakeOutput.log".
+    See also "/home/itolab-chotaro/ros/melodic/build_isolated/catkin/CMakeFiles/CMakeError.log".
+    <== Failed to process package 'catkin': 
+      Command '['cmake', '/home/itolab-chotaro/ros/melodic/src/catkin', '-DCATKIN_DEVEL_PREFIX=/home/itolab-chotaro/ros/melodic/devel_isolated/catkin', '-DCMAKE_INSTALL_PREFIX=/home/itolab-chotaro/ros/melodic/install_isolated', '-DCMAKE_BUILD_TYPE=Release', '-DPYTHON_EXECUTABLE=/home/itolab-chotaro/.pyenv/versions/3.7.5/bin/python3.7m', '-DPYTHON_INCLUDE_DIR=/home/itolab-chotaro/.pyenv/versions/3.7.5/include/python3.7m', '-G', 'Unix Makefiles']' returned non-zero exit status 1
+
+    Reproduce this error by running:
+    ==> cd /home/itolab-chotaro/ros/melodic/build_isolated/catkin && cmake /home/itolab-chotaro/ros/melodic/src/catkin -DCATKIN_DEVEL_PREFIX=/home/itolab-chotaro/ros/melodic/devel_isolated/catkin -DCMAKE_INSTALL_PREFIX=/home/itolab-chotaro/ros/melodic/install_isolated -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/home/itolab-chotaro/.pyenv/versions/3.7.5/bin/python3.7m -DPYTHON_INCLUDE_DIR=/home/itolab-chotaro/.pyenv/versions/3.7.5/include/python3.7m -G 'Unix Makefiles'
+
+    Command failed, exiting.
+
+  * Solution
+    PYTHONPATHにcatkin_pkgが入っていないのが原因.
+    今回の場合, pyenv環境なのでcatkin_pkgの場所を確認してPYTHONPATHに追加.
+
+    $ export PYTHONPATH="/home/itolab-chotaro/.pyenv/versions/3.7.5/envs/roswork/lib/python3.7/site-packages:$PYTHONPATH"
+
+* $ ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/home/itolab-chotaro/.pyenv/versions/3.7.5/bin/python3.7m -DPYTHON_INCLUDE_DIR=/home/itolab-chotaro/.pyenv/versions/3.7.5/include/python3.7m
+  * Error
+    Makefile:94: recipe for target 'install' failed
+    make: *** [install] Error 1
+    <== Failed to process package 'catkin': 
+      Command '['make', 'install']' returned non-zero exit status 2
+
+    Reproduce this error by running:
+    ==> cd /home/itolab-chotaro/ros/melodic/build_isolated/catkin && make install
+
+    Command failed, exiting.
+
+  * Try
+    makeが認識されていない? or 入っていない.
+    $ which make
+    > /usr/bin/make
+    になっていた. pyenv環境にインストールしたほうが良い?
+    $ pip3 install make
+    によってmakeを仮想環境内にインストール
+    しかしこの問題は解決しなかった.
+
+  * Solution
+    $ ./src/catkin/bin/catkin_make_isolated --install の項目に
+    -DSETUPTOOLS_DEB_LAYOUT=OFF を追加することで解決できるらしい.
+
+    しかしこの方法は一時的な解決策であるため, あまり良くないような気がする(ネットの意見)
+
+* $ ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/home/itolab-chotaro/.pyenv/versions/3.7.5/bin/python3.7m -DPYTHON_INCLUDE_DIR=/home/itolab-chotaro/.pyenv/versions/3.7.5/include/python3.7m
+  * Error
+    Unable to find the requested Boost libraries.
+
+    Boost version: 1.58.0
+
+    Boost include path: /usr/include
+
+    Could not find the following Boost libraries:
+
+            boost_thread
+            boost_locale
+
+    Some (but not all) of the required Boost libraries were found.  You may
+    need to install these additional Boost libraries.  Alternatively, set
+    BOOST_LIBRARYDIR to the directory containing Boost libraries or BOOST_ROOT
+    to the location of Boost.
+
+    * solution
+      sudo apt-get install libboost-all-dev
+
+
+  * Error
+    gtest is not found
+
+    * solution
+      sudo apt install libgtest-dev
+
+  * Error
+    poco was not found
+
+    * solution
+      sudo apt install libpoco-dev
+
+  * Error
+    Could NOT find TinyXML2 (missing: TinyXML2_LIBRARY TinyXML2_INCLUDE_DIR)
+
+    * Solution
+      sudo apt install libtinyxml2-dev
+
+  * Error
+    ModuleNotFoundError: No module named 'sipconfig'
+
+    * Solution
+      https://stackoverflow.com/questions/7942887/how-to-configure-pyqt4-for-python-3-in-ubuntu
+      ↑を参考
+      自分でsip-4.12.4をビルドする必要があるらしい
+
+  * Error
+    Processing plain cmake package: 'python_orocos_kdl'
+    error: use of deleted function ‘KDL::ChainJntToJacSolver& KDL::ChainJntToJacSolver::operator=(const KDL::ChainJntToJacSolver&)’
+
+    * Solution
+      python_orocos_kdlのバグによるものだが、まだ修正されていない。(21/02/03)
+      参考：https://github.com/ros-melodic-arch/ros-melodic-python-orocos-kdl/issues/2
+      orocos-kdlをorocos-kdl-python-gitに置き換える必要がある。
+
+      $ cd ~/ros/melodic/src/
+      $ rm -rf orocos_kinematics_dynamics/
+      $ git clone https://github.com/orocos/orocos_kinematics_dynamics.git
+      $ cd orocos_kinematics_dynamics
+      $ cd python-orocos_kdl
+      $ rm -rf pybind11
+      $ git clone https://github.com/pybind/pybind11.git
+
+  * Error
+    FileNotFoundError: The sip directory for PyQt5 could not be located. Please ensure that PyQt5 is installed
+
+    * Solution
+      sipと同様にsourceからビルド
+      参考： https://github.com/ros2/ros2/issues/623
+      sudo apt-get install sip-dev pyqt5-dev python-sip-dev pyqt5-dev-tools
+      $ wget https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.11.3/PyQt5_gpl-5.11.3.tar.gz
+      $ tar xzf PyQt5_gpl-5.11.3.tar.gz
+      $ cd PyQt5_gpl-5.11.3
+      $ python ./configure.py --sip /home/itolab-chotaro/.pyenv/versions/roswork/bin/sip
+      $ make -j4
+      $ sudo make install
+      $ pip install PyQt5-sip
+
+      (もしも)
+      Error: PyQt5 requires Qt v5.0 or later. You seem to be using v4.8.7. Use the --qmake flag to specify the correct version of qmake.
+      がでたら。
+      $ sudo apt install qt5-default
+
+      Error: Unable to create the C++ code.
+      →SIPを上のSIPのURLのバージョンに入れ直す
+
+  
+* std_msgsが使えない.
+  * Error
+    Makefile:140: recipe for target 'all' failed
+    make: *** [all] Error 2
+    <== Failed to process package 'std_msgs': 
+      Command '['/home/itolab-chotaro/ros/melodic/install_isolated/env.sh', 'make', '-j6', '-l6']' returned non-zero exit status 2.
+
+    Reproduce this error by running:
+    ==> cd /home/itolab-chotaro/ros/melodic/build_isolated/std_msgs && /home/itolab-chotaro/ros/melodic/install_isolated/env.sh make -j6 -l6
+
+    Command failed, exiting.
+
+  * Solution
+    詳細にエラーを検索した結果, ModuleNotFoundError: No module named 'em' というエラーが原因だと思われる.
+    $ pip3 install empy
+    それでもだめな場合は
+    sudo apt-get install python-empy
+
+  * Error
+    /usr/bin/ld: /home/itolab-chotaro/.pyenv/versions/3.6.5/lib/libpython3.6m.a(ceval.o): relocation R_X86_64_PC32 against symbol `_Py_NoneStruct' can not be used when making a shared object; recompile with -fPIC
+    /usr/bin/ld: final link failed: Bad value
+
+    * solution
+       pyenv の環境の問題
+       CFLAGS="-fPIC"
+       CONFIGURE_OPTS=--enable-shared
+       つまりは、
+       env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.6.8
+       をpyenv install 前に実行
+* ここまでやって以下のコマンドが動作した. 
+itolab
+  ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF -DPYTHON_EXECUTABLE=/home/itolab-chotaro/.pyenv/versions/3.6.5/bin/python3.6m -DPYTHON_INCLUDE_DIR=/home/itolab-chotaro/.pyenv/versions/3.6.5/include/python3.6m
+chohome
+  ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF -DPYTHON_EXECUTABLE=/home/chohome/.pyenv/versions/3.6.8/bin/python3.6m -DPYTHON_INCLUDE_DIR=/home/chohome/.pyenv/versions/3.6.8/include/python3.6m
+
+* catkin build cv_bridge
+  * CMake Warning at /usr/share/cmake-3.10/Modules/FindBoost.cmake:1627 (message):
+    No header defined for python37; skipping header check
+    Call Stack (most recent call first):
+      CMakeLists.txt:11 (find_package)
+
+  * C++ライブラリをpythonにするため, CMakeがlibboost-pythonを探している.
+    FindBoost.cmakeの1627行目の前に
+    message("BOOST DIR is ?" ${UPPERCP<PONENT}) と追加してみた結果.
+
+      CMake Error at /usr/share/cmake-3.10/Modules/FindBoost.cmake:1948 (message):
+      Unable to find the requested Boost libraries.
+
+      Boost version: 1.65.1
+
+      Boost include path: /usr/include
+
+      Could not find the following Boost libraries:
+
+              boost_python37
+
+      No Boost libraries were found.  You may need to set BOOST_LIBRARYDIR to the
+      directory containing Boost libraries or BOOST_ROOT to the location of
+      Boost.
+      Call Stack (most recent call first):
+      CMakeLists.txt:11 (find_package)
+
+    と出てきた.
+    これを見るとBoostは/usr/include/boost_python37を探してほしいみたい.
+
+    * Solution
+      アズさんにお願いして解決してもらった.
+      Conan(c/c++のパッケージ管理ツール)を使用してlibboost-devをバージョンアップさせる必要があった.
+
+
+* rosrun <Tab>
+  * error
+    rosrun rospack: error while loading shared libraries: libpython3.7m.so.1.0: cannot open shared object file: No such file or directory
+
+  * Solution
+    $LD_LIBRARY_PATHにlibpython3.7.so.1.0のPATHが通っていなかった.
+
+    $ echo $LD_LIBRARY_PATH
+    > /home/itolab-chotaro/.pyenv/versions/3.7.5/lib/libpython3.7m.so.1.0
+
+    $ vim ~/.bashrcに以下の行を追加.
+    """
+    export LD_LIBRARY_PATH="/home/itolab-chotaro/.pyenv/versions/3.7.5/lib/:$LD_LIBRARY_PATH"
+    """
+
+    補足:
+        $LD_LIBRARY_PATH とは共有ライブラリの場所のPATHを格納.
+        共有ライブラリとは, プログラムの実行時に使用されるライブラリの一種
+
+* roscore
+  * error
+    """
+    File "/opt/ros/melodic/lib/python2.7/dist-packages/roslaunch/config.py", line 45, in <module>
+      import rospkg.distro
+    File "/home/itolab-chotaro/.pyenv/versions/3.7.5/envs/roswork/lib/python3.7/site-packages/rospkg/distro.py", line 44, in <module>
+      import yaml
+    File "/home/itolab-chotaro/.pyenv/versions/3.7.5/envs/roswork/lib/python3.7/site-packages/yaml/__init__.py", line 399
+      class YAMLObject(metaclass=YAMLObjectMetaclass):
+                                ^
+    SyntaxError: invalid syntax
+    """
+    
+  * Solution
+    roscoreの起動には2.7である必要がある.
+    しかし, PYTHONPATHでpyenvのパッケージの優先度が高いため, python3.7.5内にあるyamlが起動することで, エラーを出している.
+
+    この場合, エラーを起こしている
+    /opt/ros/melodic/lib/python2.7/dist-packages/roslaunch/config.py
+    /opt/ros/melodic/lib/python2.7/dist-packages/rosgraph/roslogging.py
+    の中の最初に以下を追加.
+    """
+    import sys
+    sys.path.remove('/home/itolab-chotaro/.pyenv/versions/3.6.5/envs/roswork/lib/python3.6/site-packages')
+    sys.path.remove('/home/chohome/.pyenv/versions/3.6.8/envs/roswork/lib/python3.6/site-packages')
+    """
+
+* rosrun object-detection panorama_detection_split4.py
+  * error
+    libgcc_s.so.1 must be installed for pthread_cancel to work
+
+  * solution
+    libgcc_s.so.1をrosで使用するにはdesktop_full or desktop版をインストールする必要がある.
+    $ rm -rf ~/ros
+    $ rosinstall_generator desktop_full --rosdistro melodic --deps > melodic-ros_comm.rosinstall
+    以下ビルド 
+
+    
+* rosrun object-detection panorama_detection_split4.py
+  * error
+    File "/home/itolab-chotaro/py3_ws/src/object-detection/scripts/img_detection.py", line 13, in <module>
+      from cv_bridge import CvBridge
+    ModuleNotFoundError: No module named 'cv_bridge'
+
+  * cv_bridgeのPYTHONPATHが通っていない.
+    $ vim devel/setup.bashに以下を追加
+    """　  試しにrosbag info をしたら以下が帰ってきた.
+   File "/opt/ros/melodic/lib/python2.7/dist-packages/rosbag/bag.py", line 51, in <module>
+    import yaml
+  File "/home/chohome/.pyenv/versions/3.6.8/envs/roswork/lib/python3.6/site-packages/yaml/__init__.py", line 399
+    class YAMLObject(metaclass=YAMLObjectMetaclass):
+
+   bag.pyのsys.path.removeを行う.
+
+   
+* rosdep install --from-paths src --ignore-src
+  ERROR: the following packages/stacks could not have their rosdep keys resolved
+  to system dependencies:
+  amcl: [python3-pykdl] defined as "not available" for OS version [bionic]
+
+  * solution
+    osの指定が必要
+    rosdep install --from-paths src --ignore-src --os=ubuntu:bionic
+    

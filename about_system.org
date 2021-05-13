@@ -1,0 +1,54 @@
+* PATH とは
+  実行ファイルの場所を示している？
+  ターミナル内でコマンドを動かす場合に、この検索PATHから持ってこられる。
+  基本的にubuntuではbin/内に格納してあることがあるので、この/binファイルを見つけたら中には実行ファイルが入っていると思えばよい。
+  例) pwd
+  /usr/bin/pwd
+  　binとはコンパイル型の言語によって作られたプログラムの置き場
+  　　↑.so などがある。
+
+  echo $PATH
+  > /usr/local/sbin:usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  この場合は/usr/local/sbinが最も優先される、先に書かれている順番に優先度が高くなる.
+
+* /bin, /usr/bin, /usr/sbin/, /usr/local/binの違いは？
+  * binとは
+    linuxの基本コマンドが登録されているdirectoryのことである.
+
+  * sbinとは
+    管理システムコマンド
+    /binコマンドはroot or user でも使えるコマンドですが,
+    /sbinコマンドは、rootユーザー以外は通常環境パスが通っていないので、デフォルトでは使えないコマンド.
+
+  * /usr/bin
+    /usr/binは, /binと違い、一般ユーザーが使うコマンドが格納されている？
+
+  * /usr/sbin
+    /usr/sbinは管理コマンド
+
+  * /usr/local/bin
+    /usr/local/binは自分でインストールしたコマンドを使えるようにする場所.
+    Linuxのリポジトリにあるもの以外のものをインストールしたときや自作のコマンドを格納しておく時に便利.
+
+  * /home/USERNAME/.pyenv/bin/pyenv
+    といったように、pyenvをインストールしたときに入れられるpyenv固有のコマンドバイナリファイル。
+
+  * /home/USERNAME/.pyenv/versions/roswork/bin/
+    仮想環境内にもコマンドパッケージを入れることができる。
+    ちなみにこの中に入っているpython, python3, python3.7はシンボリックリンクにより次に説明する.pyenv/python3.7.5の本体へ通じている。
+
+  * /home/USERNAME/.pyenv/versions/3.7.5/bin/
+    上で説明した仮想環境のroswork内のpython3.7.5はここに接続されている。
+    ちなみに、この中にあるpython3.7をfile python3.7で調べると
+    > python3.7: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV),
+      dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0,
+      BuildID[sha1]=b9cd85d270f8f2c85576e06b89bd3af367d5e9f9, with debug_info, not stripped 
+    と出てくる。これは実行ファイルでバイナリファイルであることを示している。
+
+* site-packagesとは？
+  /usr/local/lib/python2.7/dist-packages/
+  /usr/local/lib/python3.6/dist-packages/
+  や
+  
+
+    

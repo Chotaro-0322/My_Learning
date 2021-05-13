@@ -1,0 +1,101 @@
+* /home/itolab-chotaro/turtle3_ws/src/turtlebot3_gazebo_plugin/src/turtlebot3.cc:237:31: error: ‘class gazebo::physics::Joint’ has no member named ‘GetAngle’; did you mean ‘GetForce’?
+     return left_wheel_joint_->GetAngle(0).Radian();
+
+     * solution
+       GetAngleをPositionに変更すると治るらしい?
+       return left_wheel_joint_->Position(0).Radian();
+       
+       ----------------------------------------------------------
+       以下に修正例を載せておく 参考https://github.com/crigroup/robotiq/issues/4
+       
+       * event::Events::DisconnectWorldUpdateBegin(this->updateConnection);
+       to
+       this->updateConnection.reset();
+
+
+       * GetPhysicsEngine()->
+       to
+       Physics()
+
+       * GetAngle(0).Radian();
+       to
+       Position ( 0 )
+ 
+       * gazebo::math::clamp
+       to
+       ignition::math::clamp
+
+* /opt/ros/melodic/lib/python2.7/dist-packages/genpy/message.py
+   File "/opt/ros/melodic/lib/python2.7/dist-packages/genpy/message.py", line 48, in <module>
+    import yaml
+  File "/home/itolab-chotaro/.pyenv/versions/3.6.5/envs/roswork/lib/python3.6/site-packages/yaml/__init__.py", line 399
+    class YAMLObject(metaclass=YAMLObjectMetaclass):
+
+    * solution
+      import sys
+      if '/home/itolab-chotaro/.pyenv/versions/3.6.5/envs/roswork/lib/python3.6/site-packages' in sys.path:
+        sys.path.remove('/home/itolab-chotaro/.pyenv/versions/3.6.5/envs/roswork/lib/python3.6/site-packages')
+
+
+* File "/home/itolab-chotaro/ros/melodic/install_isolated/lib/python3.6/site-packages/tf2_py/__init__.py", line 38, in <module>
+    from ._tf2 import *
+    ImportError: dynamic module does not define init function (init_tf2)
+
+    * solution
+      この問題は, gazeboがシステムのpython2の環境にインストールされているため起こっていると思われる.
+      以下を行って, システムからgazeboを削除する
+      sudo apt remove ros-melodic-gazebo
+      or
+      sudo apt remove ros-melodic-gazebo-msgs
+
+*   File "/home/itolab-chotaro/ros/melodic/install_isolated/lib/gazebo_ros/spawn_model", line 20, in <module>
+    import rospy
+  File "/home/itolab-chotaro/ros/melodic/install_isolated/lib/python3.6/site-packages/rospy/__init__.py", line 49, in <module>
+    from .client import spin, myargv, init_node, \
+  File "/home/itolab-chotaro/ros/melodic/install_isolated/lib/python3.6/site-packages/rospy/client.py", line 52, in <module>
+    import roslib
+  File "/home/itolab-chotaro/ros/melodic/install_isolated/lib/python3.6/site-packages/roslib/__init__.py", line 50, in <module>
+    from roslib.launcher import load_manifest  # noqa: F401
+  File "/home/itolab-chotaro/ros/melodic/install_isolated/lib/python3.6/site-packages/roslib/launcher.py", line 44, in <module>
+    import rospkg
+  ModuleNotFoundError: No module named 'rospkg'
+
+   * どこかでpyenv環境をsys.path.removeしてしまっているのかもしれない.
+     以下を追加
+     import sys
+     if not '/home/itolab-chotaro/.pyenv/versions/3.6.5/envs/roswork/lib/python3.6/site-packages' in sys.path:
+        sys.path.append('/home/itolab-chotaro/.pyenv/versions/3.6.5/envs/roswork/lib/python3.6/site-packages')
+
+* /home/itolab-chotaro/turtle3_ws/install/gmapping/lib/gmapping/slam_gmapping: symbol lookup error: /opt/ros/melodic/lib/libtf.so: undefined symbol: _ZN7tf2_ros17TransformListenerC1ERN3tf210BufferCoreERKN3ros10NodeHandleEb
+  * soluiton
+    geometry2 の中にバクがあるらしい.
+    turtlebot3の中のgeometry2を削除し, 再度ビルド
+    参考 : https://sgrsn1711.hatenablog.com/?page=1590392974
+    ダウンロードするgepmetry2のソース↓
+    git clone -b melodic-devel https://github.com/ros/geometry2.git
+      
+    
+* /home/itolab-chotaro/turtle3_ws/src/navigation/navfn/src/read_pgm_costmap.cpp:40:10: fatal error: pgm.h: No such file or directory
+  #include <pgm.h>
+            ↑~~~~~
+  * solution
+    pgmをインストール
+    sudo apt-get install libpgm-dev
+    ↑成功しなかった.
+
+    * solution2
+      navfnのCMakeListのｐpgm.hのコメントを読み, その下のコメントを外す
+      include("/usr/include/pgm-5.2/pgm/pgm.h")
+      とすることでpathを追加.
+
+* CMake Error at /usr/include/pgm-5.2/pgm/pgm.h:1:
+    Parse error.  Expected a command name, got unquoted argument with text
+    "/*".
+  Call Stack (most recent call first):
+    CMakeLists.txt:128 (include)
+
+    * solution
+      
+
+      
+    

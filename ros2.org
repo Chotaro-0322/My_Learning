@@ -1,0 +1,434 @@
+* ROS2のインストール
+  参考: https://qiita.com/k-koh/items/838c70004119c329c617
+  
+
+
+
+* AutowareAutoのインストール
+  参考:https://www.softek.co.jp/SID/support/sidfmvm/guide/install-docker-ubuntu1804.html
+  参考:https://qiita.com/MAEHARA_Keisuke/items/81e2cae93f50cabd160c
+  参考:https://qiita.com/mafuto/items/1b037018cd7301b8c06d
+  一番参考になった→参考:https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/installation-ade.html
+  
+  docker2の環境をインストール
+  https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(version-2.0)
+
+  dockerを始めに入れなければいけない. またdockerの最初のユーザーはrootのため, 今後sudoをつける必要をなくすためにdockerの設定を行う.
+  
+
+  
+  * 足りないものをインストール
+    pip install lark_parser
+    sudo apt-get install libcgal-dev
+    sudo apt install python3-rospkg
+    sudo apt install ros-dashing-mrt-cmake-modules
+    sudo apt install ros-dashing-apex-test-tools-add-gtest
+    sudo apt install ros-dashing-lanelet2*
+
+
+* CMake Error at CMakeLists.txt:66 (add_ros_test):
+  Unknown CMake command "add_ros_test".
+
+  * solution
+    source /opt/ros/melodic/setup.bash
+    source /opt/ros/dashing/setup.bash
+    で何故か治った
+
+* CMake Error at CMakeLists.txt:56 (find_package):
+  By not providing "Findros_testing.cmake" in CMAKE_MODULE_PATH this project
+  has asked CMake to find a package configuration file provided by
+  "ros_testing", but CMake did not find one.
+
+  Could not find a package configuration file provided by "ros_testing" with
+  any of the following names:
+
+
+  * solution
+    sudo apt install ros-dashing-ros-testing
+
+* CMake Error at /opt/ros/dashing/share/ament_cmake_target_dependencies/cmake/ament_target_dependencies.cmake:62 (message):
+  ament_target_dependencies() the passed package name
+  'osrf_testing_tools_cpp' was not found before
+Call Stack (most recent call first):
+  CMakeLists.txt:60 (ament_target_dependencies)
+
+  * solution
+    sudo apt install ros-dashing-osrf-testing-tools-cpp
+
+* /home/itolab-chotaro/adehome/AutowareAuto/src/drivers/xsens_nodes/include/xsens_nodes/xsens_imu_node.hpp:28:10: fatal error: serial_driver/serial_driver_node.hpp: No such file or directory
+ #include "serial_driver/serial_driver_node.hpp"
+          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ * solution
+   sudo apt install ros-dashing-serial-driver
+   
+* /opt/ros/dashing/include/lanelet2_core/primitives/BoundingBox.h:8:10: fatal error: Eigen/Geometry: No such file or directory
+ #include <Eigen/Geometry>
+          ^~~~~~~~~~~~~~~~
+ * solution
+
+
+* Failed to create an OpenGL context. BadValue (integer parameter out of range for operation)
+  * solution
+    これは~/adehome/AutowareAuto/.aderc-amd64-dashing
+    の中のADE_DISABLE_NVIDIA_DOCKERの行を消せば動作した.
+
+
+  
+* ROS2のインストール手順
+  1. ROS Melodic install
+    sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+    sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+    sudo apt update
+
+    sudo apt install ros-melodic-desktop-full
+
+    sudo apt install python-rosinstall python-rosinstall-generator python-wstool build-essential
+
+    sudo apt install python-rosdep
+
+    sudo rosdep init
+
+    rosdep update
+
+    echo "source /opt/ros/melodic/setup.bash" >> .bashrc
+
+    source ~/.bashrc
+    
+  2. ROS dashing install
+
+    sudo apt update && sudo apt install curl gnupg2 lsb-release
+
+    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -   
+
+    sudo sh -c 'echo "deb [arch=amd64,arm64] http://packages.ros.org/ros2/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/ros2-latest.list'
+
+    sudo apt update
+
+    sudo apt install ros-dashing-desktop
+
+    sudo apt install python3-colcon-common-extensions
+
+    sudo apt install python3-argcomplete
+
+    echo "source /opt/ros/dashing/setup.bash" >> ~/.bashrc
+
+  3. ROS1 bridge install
+     sudo apt update
+
+     sudo apt install ros-dashing-ros1-bridge
+
+
+* ROS bridgeのインストールと使い方
+  1. ros bridgeのインストール
+     sudo apt update
+
+     sudo apt install ros-dashing-ros1-bridge
+
+  2. ros bridgeの動かし方
+
+     * shell A
+
+      source /opt/ros/melodic/setup.bash
+      roscore
+
+     * shell B
+       source /opt/ros/melodic/setup.bash
+       source /opt/ros/dashing/setup.bash
+
+       * ROS_MASTER_URLにroscoreで表示されているURLに移動する
+       export ROS_MASTER_URL=http://localhost:11311
+
+       ros2 run ros1_bridge dynamic_bridge
+
+     * shell C
+       source /opt/ros/melodic/setup.bash
+       rosrun rospy_tutorials talker
+
+     * shell D
+       source /opt/ros/dahsing/setup.bash
+       ros2 run demo_nodes_cpp listener
+
+ 
+* AutowareAuto インストール
+
+  1. adeのインストール
+      cd /usr/local/bin
+      sudo wget https://gitlab.com/ApexAI/ade-cli/uploads/f6c47dc34cffbe90ca197e00098bdd3f/ade+x86_64
+      sudo mv ade+x86_64 ade
+      sudo chmod +x ade
+      ./ade --version
+      ./ade update-cli
+      ./ade --version
+
+  2. Dockerのインストール
+     sudo apt-get remove docker docker-engine docker.io
+
+     sudo apt install \
+      apt-transport-https \
+      ca-certificates \
+      curl \
+      gnupg-agent \
+      software-properties-common
+
+     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key  add -
+
+
+     sudo add-apt-repository \
+      "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) \
+      stable"
+
+     cat /etc/apt/sources.list | grep docker
+
+     * ダウンロード可能なdockerを検索
+     sudo apt-cache madison docker-ce
+
+     * dockerのインストール
+     sudo apt install docker-ce=18.06.1~ce~3-0~ubuntu
+
+     docker --version
+
+     * dockerデーモンの起動を試す
+     systemctl status docker
+     
+     * dockerを一般ユーザーでも実行できるようにする.
+       sudo groupadd docker
+
+       sudo usermod -aG docker $USER
+
+       newgrp docker 
+
+     
+  3. AutowareAutoのインストール
+     which ade
+     ade --version
+
+     cd ~
+     mkdir -p ~/adehome
+     cd ~/adehome
+     touch .adehome
+
+     cd ~/adehome
+     git clone https://gitlab.com/autowarefoundation/autoware.auto/AutowareAuto.git
+
+     cd AutowareAuto
+     git checkout tags/1.0.0 -b release-1.0.0
+
+     cd ~
+
+     cp .bashrc .old_bashrc
+
+     mv ~/.bashrc ~/adehome/.bashrc
+
+     ln -s ~/adehome/.bashrc
+
+     cd adehome/AutowareAuto
+
+     ade start --update --enter
+     ls -l .aderc*
+
+     # このまま.aderc-amd64-dashingを使用したら, 仮想空間内でrviz2が起動しない.
+     # .aderc-amd64-dashing内のADE_DISABLE_NVIDIA_DOCKER=trueを削除する
+     
+     ade --rc .aderc-amd64-dashing  start --update --enter
+
+
+* ROSの調べたこと
+  * package.xmlの中について
+    * <depend> :
+      build_dependとbuild_export_dependとexec_dependを合わせたタグ.
+			C++の依存は大体タグが被るので記述が冗長にならないようにこのタグを使う.
+
+    * <build_export> :
+       ビルドするために必要なパッケージ
+
+    * <build_export_depend> :
+      ライブラリをビルドするために必要なパッケージ
+      基本的にCMakeList.txtで指定するものは全てここで指定しておく必要がある.
+      
+    * <exec_depend> :
+      パッケージが生成した実行ファイルを実行するときに必要なパッケージ.
+			これがないとビルドには関係ないが実行時にコケることがある.
+        
+    * <test_depend> :
+      テストを実行するために必要なパッケージ.
+      
+    * <buildtool_depend> :
+      ビルドツールの指定をします. 通常はcatkinのみ.
+
+    * <doc_depend>
+      doxygen等のドキュメント作成用の依存を指定する.
+
+
+  * ユニットテストとは
+    ユニットテストは, ROSのビルドの段階で必要な行程.
+　　このコードはリリースやコードレビューをクリアしていないとみなされる.
+    ROSには180以上のパッケージ群を開発しており, その関係性をすべてデバッグするのは無理.
+    ユニットテストはその関係性をテストしてくれる.
+
+  * ament_cmakeについて
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+　　パッケージを処理するときの設定. ROS2のビルドの時には必ず載せないといけない.
+
+  * $ROS_PACKAGE_PATHにあるディレクトリの中でpackage.xmlが探され, これがあることでROSパッケージだと認識される.
+
+  * caktin_makeをした場合
+　　まずcatkin_ws/src以下のROSパッケージのpackage.xmlに書かれている依存を読んでcatkinマクロを解決して, ビルドする対象と順番を決める. この後ROSパッケージとCMakeList.txtがCmakeにかけられる.
+
+  * package.xmlは以下の役割がある.
+    システム依存の記述系
+　　あくまでROSシステムとしての依存を扱う.ビルドの依存は以下のCMakeList.txtで扱う.
+    ビルドの依存はCMakeList.txtが行う.
+
+  * CMakeList.txtの役割
+    * 依存の記述
+    * ビルド前に行われる作業
+    * 依存のエクスポートの記述
+    * ビルドする対象
+    * ビルド対象の依存
+
+    ** catkinマクロあり構成 **
+    #+BEGIN_SRC cmake
+      cmake_minimum_required(VERSION 2.8.3)  # バージョンの指定
+      project(package_A) # パッケージ名を記述
+
+      find_package(catkin REQUIRED CPMPONENTS
+        roscpp
+        )
+
+      include_directories(
+        ${catkin_INCLUDE_DIRS}
+        )
+
+      add_executable(main src/main.cpp)
+
+      target_link_libraries(main
+        ${catkin_LIBRARIES}
+        )
+
+    #+END_SRC
+    説明
+    * find_package(catkin REQUIRED COMPONENTS <依存パッケージ> <依存パッケージ>) では依存するROSパッケージ名を記述する.
+    * include_directories()ではインクルードパスを追加する. これが無いとros/ros.hとインクルードすることだできない.
+
+    * add_executable(<ターゲット名><cppファイルのパス>)ビルドするターゲットを指定する.
+
+    * target_link_libraries(<ターゲット名> ${catkin_LIBRARIES})ではリンクするライブラリのパスを追加する.
+      これがないとros/ros.hをインクルートするのでAPIには到達するが, 内部の実装を読めずにエラーになる.
+    
+
+    ** catkinマクロなし構成 **
+    #+BEGIN_SRC cmake
+      cmake_minimum_required(VERSION 2.8.3)  # バージョンの指定
+      project(package_A) # パッケージ名を記述
+
+      find_package(
+        roscpp
+        )
+
+      include_directories(
+        ${roscpp_INCLUDE_DIRS}
+        )
+
+      add_executable(main src/main.cpp)
+
+      target_link_libraries(main
+        ${roscpp_LIBRARIES}
+        )
+
+    #+END_SRC
+    説明
+    今回は依存がroscppだなので上記のように短いが, 依存するパッケージが増えると長くなる.
+    find(catkin REQUIRED COMPONENTS <依存パッケージ>)とするとパッケージの依存を追加してかつ,
+    ${依存package_***}のパスを${catkin_***}に追加してくれるため, できればcatkinマクロを使用するべき.
+
+
+    ** ライブラリを使用する際 **
+    #+BEGIN_SRC  cmake
+      # CmakeLis
+      cmake_minimum_required(VERSION 2.8.3)
+      project(package_A)
+      find_package(catkin REQUIRED COMPONENTS
+        roscpp
+        std_msgs
+      )
+      include_directories(
+        include
+        ${catkin_INCLUDE_DIRS}
+      )
+      add_library(TestLib
+        src/TestLib.cpp
+      )
+      target_link_libraries(TestLib
+        ${catkin_LIBRARIES}
+      )
+    #+END_SRC
+    
+    #+BEGIN_SRC cpp
+      //include/package_A/TestLib.h
+      #include <stdio.h>
+      #include <ros/ros.h>
+      #include <std_msgs/Int32.h>
+
+      std_msgs::Int32 ReturnInt(void);
+    #+END_SRC
+
+    #+BEGIN_SRC cpp
+    #include <package_A/TestLib.h>
+
+    #include <stdio.h>
+    #include <ros/ros.h>
+    #include <std_msgs/Int32.h>
+
+    std_msgs::Int32 ReturnInt(void){
+        std_msgs::Int32 int_msg;
+        int_msg.data = 0;
+        return int_msg;
+    }
+    #+END_SRC
+    解説
+    ライブラリの場合はadd_executableの代わりにadd_library(<ターゲット名> <cppファイルのパス1> <cppファイルのパス２> と書き込む.
+    このように書き込むと, package_A/lib<ターゲット名>.soというオブジェクトファイルが作成される.
+    複数のクラスを1つのオブジェクトファイルで扱うことができる.
+    しかし, この記述はいちいちincludeファイルのパスを手動で書いたりしないといけないのでめんどくさい.
+    これをcatkinマクロで解決できる.
+
+
+* ライブラリを作成する例
+    #+BEGIN_SRC cmake
+    # CMakeList.txt
+    cmake_minimum_required(VERSION 2.8.3)
+    project(package_A)
+    find_package(catkin REQUIRED COMPONENTS
+      roscpp
+      std_msgs
+    )
+    catkin_package(
+      INCLUDE_DIRS include
+      LIBRARIES package_A
+      CATKIN_DEPENDS roscpp std_msgs
+    )
+    include_directories(
+      include
+      ${catkin_INCLUDE_DIRS}
+    )
+    add_library(TestLib
+      src/TestLib.cpp
+    )
+    target_link_libraries(TestLib
+      ${catkin_LIBRARIES}
+    )
+    #+END_SRC
+    解説
+    catkin_packageを追加した.
+    * INCLUDE_DIRS includeはパッケージにincludeを与えます. これで他のパッケージからこのパッケージのincludeファイルが見えるようになる.
+    * LiBRARIES package_Aは上記と同じようにライブラリのパスが自動で解決できるようになる.
+    * CATKIN_DEPENDS roscpp std_msgsでは他のパッケージがこのパッケージに依存したときに自動でここに記述したパッケージも依存に加わる.
+
+      
+    
+
+    

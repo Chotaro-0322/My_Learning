@@ -1,0 +1,209 @@
+* はじめにデータセットの作成
+  * torch.utils.data.DataLoader()について
+    pytorchには学習を行う際, バッチ処理を自動で行うtorch.utils.data.DataLoader()が存在する.
+    train.pyの中ではこれをfor文で回すことによってバッチを取り出していく.
+    #+begin_src python
+    #train.py
+    train_dataloader = torch.utils.data.DataLoader(
+        Dataset,
+        batch_size = 2,
+    )
+    #+end_src
+    (Datasetは次に説明する.)
+    このtrain_dataloader(torch.utils.data.DataLoader)はfor文で呼び出すとバッチサイズ分の画像が手に入る.
+    #+begin_src python
+      #train.py
+      for i, (img, anno) in enumerate(train_dataloader):
+          # imgは学習に使用する画像(batch_size=2 なら2枚分の画像データ)
+          # annoは学習の正解データ(batch_size=2 なら2枚分の正解データ)
+
+    #+end_src
+
+  * dataset.pyの作成
+    torch.utils.data.DataLoader()で使用するDatasetを作成.
+    Datasetは画像のpathを読み込んで, 画像処理を施した画像を出力する.
+
+    $ touch dataset.py
+
+    dataset.py内のDatasetクラスは３つの特殊メソッド(サブルーチン)を持っている必要がある.
+    1. def __init__(self.img_list, anno_list, transform) : コンストラクタ(transformは後で使用)
+    2. def __len__(self) : len(class)のときに表示される数字を指定できる.
+    3. def __getitem__(self, n) : class[n]としたときにn番目の要素を指定する.
+
+    この３つの特殊メソッド(サブルーチン)を使用したDatasetクラスを作成する.
+    #+BEGIN_SRC python
+    def csv_Open(csv_anno_path): # annoがcsvファイルのとき
+    csv_list = []
+    img_list = []
+    hit_list = []
+    for csv_path in csv_anno_path:
+        with open(csv_path, "r") as csv_f:
+            csv_reader = csv.reader(csv_f)
+            for line in csv_reader:
+                img_list.append(line[0])
+                hit_list.append(int(line[1]))
+
+                csv_list.append(csv_path)
+    return img_list, hit_list, csv_list
+
+  
+    class Dataset(data.Dataset):
+    def __init__(self, img_path, anno_path, transform):
+        self.img_path = img_path
+        self.anno_path = anno_path
+        self.transform = transform
+
+        self.img_list, self.anno_list, self.csv_list = csv_Open(anno_path) # pathから中身の情報を取り出し, リストに格納
+        
+    def __len__(self):
+        return len(self.img_list)
+
+    def __getitem__(self, index):
+        img_path = self.csv_list[index][:-14] + self.img_list[index]
+        img = cv2.imread(img_path)
+        anno = self.anno_list[index]
+
+        if self.transform:
+            img_data = self.transform(img)
+
+        img_np = img_data.to("cpu").detach().numpy().copy()
+        img_np = img_np.transpose(1, 2, 0)
+
+        return img_data, anno
+    #+END_SRC
+    
+  * transformsの作成
+    深層学習ネットワークは入力のサイズが決まっていることが多い.
+    また, データセットの拡張を行うために, 画像の拡大などを行うことがある.
+    torchvision.transforms(以下transforms)はこの処理を自動で行ってくれる.
+    #+BEGIN_SRC python
+    # train.py
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.CenterCrop(300),
+                                    transforms.Resize(224)])
+    #+END_SRC
+    代表的な処理
+    ToTensor() : Dataをtensorに変換 (pytorchはtensorを必要とするので, この変換は必須)
+    CenterCrop(300) : 画像の中央300×300を切り抜く
+    Resize(224) : 224×224にリサイズ
+
+  * まとめ
+    "transforms"はDatasetの作成のために使用
+    "Dataset"はtorch.utils.data.DataLoader()のために使用
+
+
+* Networkの作成
+  深層学習のネットワークの作成.
+  Networkの作成には
+  #+BEGIN_SRC python
+  torchvision import models
+  #+END_SRC
+  このmodelsクラスを継承し, 作成していく.
+
+  基本的には以下のサブルーチンを用いる
+     class Network(nn.Module):
+  1. def __init__(self):
+     super(Network, self).__init__()  : コンストラクタ(継承をしっかりする)
+
+  2. def forward(self, x):  ネットワークの実行部分
+                            train.pyではNet(x)とするとこの関数が実行される.
+
+ #+BEGIN_SRC python 
+  class Network(nn.Module):
+      def __init__(self, net):
+          super(Network, self).__init__()
+
+          # コンストラクタ
+          self.conv01 = nn.Conv2d(3, 3, 3, 1, 1)
+          self.conv02 = nn.Conv2d(3, 3, 3, 1, 1)
+          #self.pool1 = nn.MaxPool2d(2, 2)
+
+          self.conv03 = nn.Conv2d(3, 3, 3, 1, 1)
+          self.conv04 = nn.Conv2d(3, 3, 3, 1, 1)
+          #self.pool2 = nn.MaxPool2d(2, 2)
+
+          self.conv05 = nn.Conv2d(3, 3, 3, 1, 1)
+          self.conv06 = nn.Conv2d(3, 3, 3, 1, 1)
+          self.conv07 = nn.Conv2d(3, 3, 3, 1, 1)
+          #self.pool3 = nn.MaxPool2d(2, 2)
+
+
+      def forward(self, x):
+          # 結果を出力
+          x = self.relu(self.conv01(x))
+          x = self.relu(self.conv02(x))
+          #x = self.pool1(x)
+
+          x = self.relu(self.conv03(x))
+          x = self.relu(self.conv04(x))
+          #x = self.pool2(x)
+
+          x = self.relu(self.conv05(x))
+          x = self.relu(self.conv06(x))
+          x = self.relu(self.conv07(x))
+          #x = self.pool3(x)
+
+          return x
+#+END_SRC
+
+* 学習部分の実行
+  これまで作成したプログラムを使用して, 学習を実行する.
+  このときに重要なのは, GPUを使用するために, データをGPUへ送ること.
+  #+BEGIN_SRC python
+  device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+  #+END_SRC
+  
+  * Trainクラスを作成する.
+    Trainのときには以下のものを用意する
+    1. 誤差関数 (torch.nn)
+    2. 最適化の手法(torch.optim)
+    3. ネットワークへのウェイトのセット(ウェイトを使用しないなら, なくても良い)
+       → param = torch.load("ファイルのpath")
+          net.load_state_dict(param)
+  #+BEGIN_SRC python 
+  class TrainEngine():
+      def __init__(self, dataloader, network, device, epoch=100):
+
+          self.network = network
+          self.dataloader = dataloader
+
+          self.epoch = epoch
+          self.device = device
+
+          self.creterion = nn.CrossEntropyLoss()
+
+      def __call__(self):
+          print("network is ", self.network)
+          self.network = self.network.to(self.device)
+          # self.network.apply(self.init_weights)
+
+          optimizer = optim.Adam(self.network.parameters(), lr = 0.002)
+
+          for epo in tqdm(range(self.epoch)):
+              # 最初に使用する空のテンソルの用意(１フレーム前のデータが最初はないため)
+              for i, (img, anno) in enumerate(self.dataloader):
+                  img = img.to(self.device) # imgをgpuに送る
+                  anno = anno.to(self.device) # annoをgpuに送る
+                  torch.autograd.set_detect_anomaly(True)
+                  img = img.unsqueeze(0)
+                  anno = anno.unsqueeze(0)
+                  self.network.train() # networkをtrainモード
+                  optimizer.zero_grad() # optimの初期化
+                  result = self.network(img) # networkでフィードフォワードを行う.
+                  loss = self.creterion(result, anno) # 誤差を計算
+                  _, preds = torch.max(result, 1) # 結果を出力
+                  if preds == anno:
+                      print("anno is True", "result is ", preds, "loss is ", loss)
+                  else:
+                      print("anno is Flase", anno, "result is ", preds, "loss is ", loss)
+
+                  if not torch.isnan(loss): # lossがnanの場合, 学習が壊れるので避ける
+                      if i != 0:
+                          loss.backward(retain_graph=True)
+
+                  optimizer.step() # 最適化(ウェイトの更新)
+
+              if epo % 1 == 0:
+                  torch.save(self.network.state_dict(), "./weight/state_{}.pth".format(epo)) # ウェイトの保存
+          torch.save(self.network.state_dict(), "./weight/Apex_RNN.pth")
+    #+END_SRC

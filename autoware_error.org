@@ -1,0 +1,247 @@
+buildコマンド！！
+ AUTOWARE_COMPILE_WITH_CUDA=1 colcon build --cmake-args -DCMAKE_PREFIX_PATH="/home/chohome/ros/melodic/install_isolated" -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF -DPYTHON_EXECUTABLE=/home/chohome/.pyenv/versions/3.6.8/bin/python3.6m -DPYTHON_INCLUDE_DIR=/home/chohome/.pyenv/versions/3.6.8/include/python3.6m -DPYTHON_LIBRARY=/home/chohome/.pyenv/versions/3.6.8/lib/libpython3.6m.so
+ colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF -DPYTHON_EXECUTABLE=/home/chohome/.pyenv/versions/3.6.8/bin/python3.6m -DPYTHON_INCLUDE_DIR=/home/chohome/.pyenv/versions/3.6.8/include/python3.6m -DPYTHON_LIBRARY=/home/chohome/.pyenv/versions/3.6.8/lib/libpython3.6m.so
+
+ * itolab-chotaro
+ colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF -DPYTHON_EXECUTABLE=/home/itolab-chotaro/.pyenv/versions/3.6.5/bin/python3.6m -DPYTHON_INCLUDE_DIR=/home/itolab-chotaro/.pyenv/versions/3.6.5/include/python3.6m -DPYTHON_LIBRARY=/home/itolab-chotaro/.pyenv/versions/3.6.5/lib/libpython3.6m.so
+ 
+debug あり
+ colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF -DPYTHON_EXECUTABLE=/home/itolab-chotaro/.pyenv/versions/3.6.8/bin/python3.6m -DPYTHON_INCLUDE_DIR=/home/itolab-chotaro/.pyenv/versions/3.6.5/include/python3.6m -DPYTHON_LIBRARY=/home/itolab-chotaro/.pyenv/versions/3.6.5/lib/libpython3.6m.so --debug-find 
+
+
+
+* Autowareを入れる前に...
+  システムの方にもrosをインストールする必要がある.
+
+  システムのrosのsetup.bashをsourceしてから上のコードを打ち込む
+  
+* Failed   <<< kitti_box_publisher [4.07s, exited with code 1]
+  Add the installation prefix of "autoware_msgs" to CMAKE_PREFIX_PATH or set
+  "autoware_msgs_DIR" to a directory containing one of the above files.  If
+  "autoware_msgs" provides a separate development package or SDK, be sure it
+  has been installed.
+
+
+  kitti_box_publisherのCMakeListに以下を追加
+  set(CMAKE_PREFIX_PATH "/home/autoware.ai/install/autoware_msgs/share/autoware_msgs/cmake")
+
+  * solution
+    jsk_recognition
+    jsk_common
+    をgithubからダウンロードし, ビルド
+
+* map_server
+
+   Add the installation prefix of "map_server" to CMAKE_PREFIX_PATH or set
+  "map_server_DIR" to a directory containing one of the above files.  If
+  "map_server" provides a separate development package or SDK, be sure it has
+
+  * solution
+    map_serverをgithubからダウンロードしコンパイル
+
+
+*  No package 'libsiftfast' found
+  * solution
+    libsiftfast のgithubからソースをbuild
+    https://github.com/jsk-ros-pkg/jsk_3rdparty.git
+    
+* AttributeError: module 'urllib' has no attribute 'urlretrieve'
+  python2→python3変更点
+      urllib.urlretrieve(uri, dest)
+      ↓
+      urllib.request.urlretrieve(uri, dest)
+
+  ↑無理だった
+  jsk_3rdpartyないの3rdpartyを削除.
+
+*  Could not find a package configuration file provided by "catkin_virtualenv
+ * solution
+   以下をsrcにインストール
+ 　https://github.com/locusrobotics/catkin_virtualenv.git
+
+* tf2_sensor_msgs is not found
+ * solution
+   geometry2 を削除して, geometry2をsourceからダウンロードしてbuild
+
+
+
+* ModuleNotFoundError: No module named 'Cryptodome
+pip3 install pycryptodomex
+
+
+* ModuleNotFoundError: No module named 'gnupg'
+pip install gnupg
+
+
+*   Could not find a package configuration file provided by "opencv_apps" with
+git clone https://github.com/ros-perception/opencv_apps
+
+* No package 'libcmt' found
+
+
+
+* colcon: command not found
+
+
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list'
+sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
+sudo apt update
+sudo apt install python3-colcon-common-extensions
+
+
+* jsk_recognition_msgs
+Add the installation prefix of "jsk_recognition_msgs" to CMAKE_PREFIX_PATH
+  or set "jsk_recognition_msgs_DIR" to a directory containing one of the
+  above files.  If "jsk_recognition_msgs" provides a separate development
+  package or SDK, be sure it has been installed.
+
+ * solution
+sudo apt-get install ros-melodic-jsk-recognition-msgs & sudo apt-get install ros-melodic-jsk-rviz-plugins
+
+* lanelet2_core
+
+sudo apt install ros-melodic-lanelet2
+
+* nmea_msgs
+sudo apt-get install ros-melodic-nmea-msgs
+
+* grid_map_cv
+sudo apt install ros-melodic-grid-map-cv
+
+* grid_map_msgs
+sudo apt install ros-melodic-grid-map
+
+* Could NOT find GLEW
+ sudo apt install libglew-dev 
+
+* nmea_navsat_driver
+ sudo apt install ros-melodic-nmea-navsat-driver
+
+* その他いろいろなやつ
+sudo apt-get install ros-melodic-jsk-recognition-msgs ros-melodic-jsk-rviz-plugins
+sudo apt-get install ros-melodic-lanelet2*
+sudo apt-get install ros-melodic-nmea*
+sudo apt-get install ros-melodic-grid-map*
+sudo apt-get install ros-melodic-automotive-*
+sudo apt-get install ros-melodic-velodyne*
+sudo apt-get install ros-melodic-gps-common
+sudo apt-get install ros-melodic-qpoases-vendor
+
+sudo apt install ros-melodic-controll-manager
+sudo apt install ros-melodic-robot-state-publisher
+sudo apt install ros-melodic-joint-state-controller
+sudo apt install ros-melodic-rqt*
+
+
+sudo apt install libnl-3-*
+sudo apt install libnl-genl-3-*
+
+
+* require cmake >= 3.18.0 みたいなやつ
+cmakeの新しいものをsourceからビルド
+
+* ImportError: "from catkin_pkg.package import parse_package" failed: No module named 'catkin_pkg'
+
+
+* lanelet2_examples
+CMake Error at /home/itolab-chotaro/autoware.ai/install/mrt_cmake_modules/share/mrt_cmake_modules/cmake/Modules/FindAutoDeps.cmake:115 (message):
+  Package rosbash is specified for autodepend but cmake variables are not
+  defined.  Did you resolve dependencies?
+Call Stack (most recent call first):
+  CMakeLists.txt:16 (find_package)
+
+ * solution
+lanelet2_examplesを削除した
+その後に, sudo apt install ros-melodic-lanelet2-examples
+
+* /opt/ros/melodic/lib/python2.7/dist-packages/rosgraph/roslogging.py
+  File "/opt/ros/melodic/lib/python2.7/dist-packages/rosgraph/roslogging.py", line 44, in <module>
+    import yaml
+  File "/home/itolab-chotaro/.pyenv/versions/3.6.5/envs/roswork/lib/python3.6/site-packages/yaml/__init__.py", line 399
+    class YAMLObject(metaclass=YAMLObjectMetaclass):
+
+ * solution
+   以下をpythonコード(import yamlがあるファイル)に追加
+ 
+    import sys
+    sys.path.remove('/home/itolab-chotaro/.pyenv/versions/3.6.5/envs/roswork/lib/python3.6/site-packages')
+
+* Traceback (most recent call last):
+  File "/opt/ros/melodic/bin/roscore", line 36, in <module>
+    from rosmaster.master_api import NUM_WORKERS
+ImportError: No module named rosmaster.master_api
+ * solution
+   PYTHONPATHにrosのpathが入っていない
+   ~/ros/melodic/devel_isolated/setup.bashに以下を追加
+/home/itolab-chotaro/ros/melodic/install_isolated/lib/python3.6/site-packages
+
+
+* sudo: no tty present and no askpass program specified
+  File "/home/itolab-chotaro/autoware.ai/install/runtime_manager/share/runtime_manager/scripts/subnet_chk.py", line 26
+    print "Usage: {} <ipaddr|hostname|->".format(sys.argv[0])
+ 
+ * solution
+   python3なのにpython2のコードになっているのが問題
+   /home/itolab-chotaro/autoware.ai/install/runtime_manager/share/runtime_manager/scripts/subnet_chk.pyを以下のように編集
+
+   print "Usage: {} <ipaddr|hostname|->".format(sys.argv[0])
+   ↓
+   print("Usage: {} <ipaddr|hostname|->".format(sys.argv[0]))
+
+* ModuleNotFoundError: No module named 'wx'
+  pip install wxPython
+
+ * 追加(pip install wxPython==4.0.7.post2 で以下のエラー)
+    copying symlink wx/libwx_baseu-3.0.so -> build/lib.linux-x86_64-3.6/wx/libwx_baseu-3.0.so
+    error: [Errno 2] No such file or directory: 'build/lib.linux-x86_64-3.6/wx/libwx_baseu-3.0.so'
+
+    * solution
+sudo apt install make gcc libgtk-3-dev libwebkitgtk-dev libwebkitgtk-3.0-dev libgstreamer-gl1.0-0 freeglut3 freeglut3-dev python-gst-1.0 python3-gst-1.0 libglib2.0-dev ubuntu-restricted-extras libgstreamer-plugins-base1.0-dev
+    ↑解決しなかった
+    * solution2
+      https://github.com/wxWidgets/Phoenix/issues/1769
+      setuptoolsが悪さをしているらしい? 新しすぎるsetuptoolsを削除し, setuptools41.0.0をインストール
+
+
+* ModuleNotFoundError: No module named 'psutil'
+
+* /home/itolab-chotaro/ros/melodic/install_isolated/lib/python3.6/site-packages/rosgraph/roslogging.py
+　  sys.path.remove(x) is not found
+
+    * solution
+      sys.path.sys()の行を削除
+* roslaunch runtime_manager runtime_manager.launch を行うと, 
+  　rosrun runtime_managaer runtime_manager_dialog にするとうまくできない.
+
+    * solution 
+      if文で存在したらでpathを操作する.
+
+* roslaunch runtime_managaer が出てこない
+    * solution
+      autoware.aiのsetup.bashに以下を追加
+
+# setting COLCON_CURRENT_PREFIX avoids determining the prefix in the sourced script
+COLCON_CURRENT_PREFIX="/home/itolab-chotaro/ros_ws/devel"
+_colcon_prefix_chain_bash_source_script "$COLCON_CURRENT_PREFIX/local_setup.bash"
+# setting COLCON_CURRENT_PREFIX avoids determining the prefix in the sourced script
+COLCON_CURRENT_PREFIX="/home/itolab-chotaro/ros/melodic/install_isolated"
+_colcon_prefix_chain_bash_source_script "$COLCON_CURRENT_PREFIX/local_setup.bash"
+# setting COLCON_CURRENT_PREFIX avoids determining the prefix in the sourced script
+COLCON_CURRENT_PREFIX="/home/itolab-chotaro/ros/melodic/devel_isolated/diff_drive_controller"
+_colcon_prefix_chain_bash_source_script "$COLCON_CURRENT_PREFIX/local_setup.bash"
+# setting COLCON_CURRENT_PREFIX avoids determining the prefix in the sourced script
+COLCON_CURRENT_PREFIX="/home/itolab-chotaro/detection_ws/devel_isolated/object_detection"
+_colcon_prefix_chain_bash_source_script "$COLCON_CURRENT_PREFIX/local_setup.bash"
+# setting COLCON_CURRENT_PREFIX avoids determining the prefix in the sourced script
+COLCON_CURRENT_PREFIX="/home/itolab-chotaro/detection_ws/devel_isolated/panorama"
+_colcon_prefix_chain_bash_source_script "$COLCON_CURRENT_PREFIX/local_setup.bash"
+# setting COLCON_CURRENT_PREFIX avoids determining the prefix in the sourced script
+COLCON_CURRENT_PREFIX="/home/itolab-chotaro/detection_ws/devel_isolated/video_stream_opencv"
+_colcon_prefix_chain_bash_source_script "$COLCON_CURRENT_PREFIX/local_setup.bash"
+# setting COLCON_CURRENT_PREFIX avoids determining the prefix in the sourced script
+#COLCON_CURRENT_PREFIX="/home/itolab-chotaro/autoware.ai/install"
+#_colcon_prefix_chain_bash_source_script "$COLCON_CURRENT_PREFIX/local_setup.bash"
+# setting COLCON_CURRENT_PREFIX avoids determining the prefix in the sourced script
+#COLCON_CURRENT_PREFIX="/home/itolab-chotaro/testfolder/autoware.ai/install"
+#_colcon_prefix_chain_bash_source_script "$COLCON_CURRENT_PREFIX/local_setup.bash"
