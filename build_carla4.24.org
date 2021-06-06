@@ -36,6 +36,8 @@
 
   make launch
 
+  vim ~/.bashrc
   
-  
+  export PYTHONPATH=$PYTHONPATH:"$HOME/carla/PythonAPI/carla/dist/$(ls $HOME/carla/PythonAPI/carla/dist | grep py3.)"
+  export PYTHONPATH=$PYTHONPATH:"$HOME/carla/PythonAPI/carla"
 
