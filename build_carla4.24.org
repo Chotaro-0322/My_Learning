@@ -17,11 +17,11 @@
 
   git clone -b 4.24 carla https://github.com/CarlaUnreal/UnrealEngine.git ~/UnrealEngine_4.24
 
-  cd ~/UnrealEngine_4.26
+  cd ~/UnrealEngine_4.24
 
   ./Setup.sh && ./GenerateProjectFiles.sh && make
 
-  cd ~/UnrealEngine_4.26/Engine/Binaries/Linux && ./UE4Editor
+  cd ~/UnrealEngine_4.24/Engine/Binaries/Linux && ./UE4Editor
 
   sudo apt-get install aria2
 
