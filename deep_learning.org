@@ -207,3 +207,6 @@
                   torch.save(self.network.state_dict(), "./weight/state_{}.pth".format(epo)) # ウェイトの保存
           torch.save(self.network.state_dict(), "./weight/Apex_RNN.pth")
     #+END_SRC
+
+
+

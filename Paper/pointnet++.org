@@ -1,0 +1,10 @@
+* iterative farthest point sampling(FPS)
+  Sampling layer : 重心位置の選択
+  FPSを用いて, 入力のインプットから部分集合を取り出す.
+  部分集合の中で最も遠い点を徐々に取り出していく.
+
+  * Sampling layer : 重心位置を選択
+
+  * Grouping Layer : 近傍点群を抽出
+
+  * PointNet Layer : 局所特徴量を計算

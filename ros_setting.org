@@ -8,4 +8,7 @@
 
 
   
-  colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF -DPYTHON_EXECUTABLE=/home/chohome/.pyenv/versions/3.6.8/bin/python3.6m -DPYTHON_INCLUDE_DIR=/home/chohome/.pyenv/versions/3.6.8/include/python3.6m -DPYTHON_LIBRARY=/home/chohome/.pyenv/versions/3.6.8/lib/libpython3.6m.so
+  colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release -DSETUPTOOLS_DEB_LAYOUT=OFF
+                                                       -DPYTHON_EXECUTABLE=/home/chohome/.pyenv/versions/3.6.8/bin/python3.6m
+                                                       -DPYTHON_INCLUDE_DIR=/home/chohome/.pyenv/versions/3.6.8/include/python3.6m
+                                                       -DPYTHON_LIBRARY=/home/chohome/.pyenv/versions/3.6.8/lib/libpython3.6m.so

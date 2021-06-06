@@ -1,0 +1,28 @@
+* PointNetLK(https://speakerdeck.com/nnchiba/point-cloud-deep-learning-survey-ver-2?slide=291 79番)
+  PointnetとLucas-Kanade法(LK法)を使用することで, 位置合わせを行う.
+  * LK法は隣接関係が必要なので, LK法を修正して隣接関係が不要になるょうに設計.
+  * Inverse Compositional(IC)の考え方を利用
+  * ICPよりも高速
+
+* OREOS(上記URLの80番)
+  LiDAR点群からマップ上での自己位置と方位を推定する手法
+  * 位置と方位に分けて特徴点を計算し, 位置推定後に方位のズレを推定.
+  * 球面座標系に投影して2D CNNで処理
+
+* 3DRegNet(83番)
+  三次元点群の位置合わせを行う.
+  * 対応する可能性のある点をペアの集合を入力
+  * 対応の確からしさと相対号大変感を出力
+
+
+* PointFusion(61番)
+  二次元画像と三次元点群を両方用いた物体検出手法
+  * 二次元画像上での物体領域検出にはFaster R-CNNを利用
+  * 画像と点群の情報を統合してバウンディングボックスを推定.
+
+* Complex-YOLO(64番)
+  LiDARで計測された三次元点群から物体検出を行う.
+  * YOLOv2をベースとしたネットワークの構造
+  * 三次元点群をBEVに変換し2Dとして扱う.
+  * (Euler-Region-Proposal Network)E-RPNを導入し, 物体の方向を複素数の偏角で推定.
+  
