@@ -1,0 +1,9 @@
+# How to pull You leave local branch
+
+git stash save
+
+git status
+
+git pull origin main
+
+git stash apply
